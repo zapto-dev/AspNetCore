@@ -13,7 +13,7 @@ internal class HttpResponseImpl(HttpContextImpl httpContext) : HttpResponse
     private readonly NameValueHeaderDictionary _headers = new();
     private readonly ResponseCookiesImpl _cookies = new();
 
-    private Stream _bodyValue;
+    private Stream _bodyValue = null!;
 
     public void SetHttpResponse(AspNetResponse httpResponse)
     {

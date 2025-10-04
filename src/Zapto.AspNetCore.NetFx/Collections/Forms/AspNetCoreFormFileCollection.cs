@@ -123,7 +123,7 @@ internal sealed class AspNetCoreFormFileCollection : IFormFileCollection
         }
 
         public string? ContentType => _formFile?.ContentType;
-        public string ContentDisposition { get; set; }
+        public string? ContentDisposition => null;
 
         public string? FileName => _formFile?.FileName;
 

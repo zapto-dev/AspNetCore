@@ -46,8 +46,8 @@ internal class SharedModuleContext : IRegisteredObject
 
     public readonly object InitLock = new();
     public bool IsInitialized;
-    public IHost Host;
-    public RequestDelegate Delegate;
+    public IHost Host = null!;
+    public RequestDelegate Delegate = null!;
     public Task HostedServicesTask = Task.CompletedTask;
 
     public void Stop(bool immediate)
@@ -138,13 +138,13 @@ internal class SharedModuleContext : IRegisteredObject
         IHost? host;
         lock (InitLock)
         {
-            if (Host == null)
+            if (Host == null!)
                 return;
 
             host = Host;
-            Host = null;
+            Host = null!;
             IsInitialized = false;
-            Delegate = null;
+            Delegate = null!;
             HostedServicesTask = Task.CompletedTask;
         }
 

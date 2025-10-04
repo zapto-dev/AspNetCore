@@ -9,9 +9,9 @@ namespace Zapto.AspNetCore.Utils
     /// <summary>
     /// Provides asynchronous wrappers.
     /// </summary>
-    internal static partial class AsyncFactory
+    internal static class AsyncFactory
     {
-        private static AsyncCallback Callback(Action<IAsyncResult> endMethod, TaskCompletionSource<object> tcs)
+        private static AsyncCallback Callback(Action<IAsyncResult> endMethod, TaskCompletionSource<object?> tcs)
         {
             var originalTaskScheduler = TaskScheduler.Current;
             return (asyncResult) =>
@@ -27,7 +27,7 @@ namespace Zapto.AspNetCore.Utils
             };
         }
 
-        private static void CallEndMethod(IAsyncResult asyncResult, Action<IAsyncResult> endMethod, TaskCompletionSource<object> tcs)
+        private static void CallEndMethod(IAsyncResult asyncResult, Action<IAsyncResult> endMethod, TaskCompletionSource<object?> tcs)
         {
             try
             {
@@ -50,11 +50,9 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="beginMethod">The begin method.</param>
         /// <param name="endMethod">The end method.</param>
         /// <returns></returns>
-        public static Task FromApm(Func<AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod)
+        public static Task FromApm(Func<AsyncCallback, object?, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod)
         {
-            var tcs = new TaskCompletionSource<object>();
-            // MODIFIED
-            //beginMethod(Callback(endMethod, tcs), null);
+            var tcs = new TaskCompletionSource<object?>();
             var asyncResult = beginMethod(Callback(endMethod, tcs), null);
             if (asyncResult.CompletedSynchronously)
                 CallEndMethod(asyncResult, endMethod, tcs);
@@ -71,11 +69,9 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="endMethod">The end method.</param>
         /// <param name="arg0">Argument 0.</param>
         /// <returns></returns>
-        public static Task FromApm<TArg0>(Func<TArg0, AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0)
+        public static Task FromApm<TArg0>(Func<TArg0, AsyncCallback, object?, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0)
         {
-            var tcs = new TaskCompletionSource<object>();
-            // MODIFIED
-            //beginMethod(arg0, Callback(endMethod, tcs), null);
+            var tcs = new TaskCompletionSource<object?>();
             var asyncResult = beginMethod(arg0, Callback(endMethod, tcs), null);
             if (asyncResult.CompletedSynchronously)
                 CallEndMethod(asyncResult, endMethod, tcs);
@@ -92,11 +88,9 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="arg0">Argument 0.</param>
         /// <param name="arg1">Argument 1.</param>
         /// <returns></returns>
-        public static Task FromApm<TArg0, TArg1>(Func<TArg0, TArg1, AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0, TArg1 arg1)
+        public static Task FromApm<TArg0, TArg1>(Func<TArg0, TArg1, AsyncCallback, object?, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0, TArg1 arg1)
         {
-            var tcs = new TaskCompletionSource<object>();
-            // MODIFIED
-            //beginMethod(arg0, arg1, Callback(endMethod, tcs), null);
+            var tcs = new TaskCompletionSource<object?>();
             var asyncResult = beginMethod(arg0, arg1, Callback(endMethod, tcs), null);
             if (asyncResult.CompletedSynchronously)
                 CallEndMethod(asyncResult, endMethod, tcs);
@@ -115,11 +109,9 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="arg1">Argument 1.</param>
         /// <param name="arg2">Argument 2.</param>
         /// <returns></returns>
-        public static Task FromApm<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, AsyncCallback, object, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0, TArg1 arg1, TArg2 arg2)
+        public static Task FromApm<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, AsyncCallback, object?, IAsyncResult> beginMethod, Action<IAsyncResult> endMethod, TArg0 arg0, TArg1 arg1, TArg2 arg2)
         {
-            var tcs = new TaskCompletionSource<object>();
-            // MODIFIED
-            //beginMethod(arg0, arg1, arg2, Callback(endMethod, tcs), null);
+            var tcs = new TaskCompletionSource<object?>();
             var asyncResult = beginMethod(arg0, arg1, arg2, Callback(endMethod, tcs), null);
             if (asyncResult.CompletedSynchronously)
                 CallEndMethod(asyncResult, endMethod, tcs);
@@ -135,21 +127,26 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="callback">The callback method passed into the Begin method of the APM pattern.</param>
         /// <param name="state">The state passed into the Begin method of the APM pattern.</param>
         /// <returns>The asynchronous operation, to be returned by the Begin method of the APM pattern.</returns>
-        public static IAsyncResult ToBegin(Task task, AsyncCallback callback, object state)
+        public static IAsyncResult ToBegin(Task task, AsyncCallback callback, object? state)
         {
             if (task.IsCompleted)
                 return new AsyncResultCompletedSynchronously(task, state);
-            var tcs = new TaskCompletionSource<object>(state);
-            task.ContinueWith((t) =>
+            var tcs = new TaskCompletionSource<object?>(state);
+            task.ContinueWith(_ =>
             {
                 if (task.IsFaulted)
-                    tcs.TrySetException(task.Exception.InnerExceptions);
+                {
+                    if (task.Exception != null)
+                        tcs.TrySetException(task.Exception.InnerExceptions);
+                    else
+                        tcs.TrySetException(new Exception[] { new Exception("Unknown error") });
+                }
                 else if (task.IsCanceled)
                     tcs.TrySetCanceled();
                 else
                     tcs.TrySetResult(null);
 
-                callback?.Invoke(tcs.Task);
+                callback(tcs.Task);
             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Current);
             return tcs.Task;
         }
@@ -174,7 +171,7 @@ namespace Zapto.AspNetCore.Utils
     /// Provides asynchronous wrappers.
     /// </summary>
     /// <typeparam name="TResult">The type of the result of the asychronous operation.</typeparam>
-    public static partial class AsyncFactory<TResult>
+    public static class AsyncFactory<TResult>
     {
         private static AsyncCallback Callback(Func<IAsyncResult, TResult> endMethod, TaskCompletionSource<TResult> tcs)
         {
@@ -214,7 +211,7 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="beginMethod">The begin method. May not be <c>null</c>.</param>
         /// <param name="endMethod">The end method. May not be <c>null</c>.</param>
         /// <returns>The result of the asynchronous operation.</returns>
-        public static Task<TResult> FromApm(Func<AsyncCallback, object, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod)
+        public static Task<TResult> FromApm(Func<AsyncCallback, object?, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod)
         {
             var tcs = new TaskCompletionSource<TResult>();
             var asyncResult = beginMethod(Callback(endMethod, tcs), null);
@@ -233,7 +230,7 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="endMethod">The end method.</param>
         /// <param name="arg0">Argument 0.</param>
         /// <returns>The result of the asynchronous operation.</returns>
-        public static Task<TResult> FromApm<TArg0>(Func<TArg0, AsyncCallback, object, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0)
+        public static Task<TResult> FromApm<TArg0>(Func<TArg0, AsyncCallback, object?, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0)
         {
             var tcs = new TaskCompletionSource<TResult>();
             var asyncResult = beginMethod(arg0, Callback(endMethod, tcs), null);
@@ -252,7 +249,7 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="arg0">Argument 0.</param>
         /// <param name="arg1">Argument 1.</param>
         /// <returns>The result of the asynchronous operation.</returns>
-        public static Task<TResult> FromApm<TArg0, TArg1>(Func<TArg0, TArg1, AsyncCallback, object, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0, TArg1 arg1)
+        public static Task<TResult> FromApm<TArg0, TArg1>(Func<TArg0, TArg1, AsyncCallback, object?, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0, TArg1 arg1)
         {
             var tcs = new TaskCompletionSource<TResult>();
             var asyncResult = beginMethod(arg0, arg1, Callback(endMethod, tcs), null);
@@ -273,7 +270,7 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="arg1">Argument 1.</param>
         /// <param name="arg2">Argument 2.</param>
         /// <returns>The result of the asynchronous operation.</returns>
-        public static Task<TResult> FromApm<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, AsyncCallback, object, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0, TArg1 arg1, TArg2 arg2)
+        public static Task<TResult> FromApm<TArg0, TArg1, TArg2>(Func<TArg0, TArg1, TArg2, AsyncCallback, object?, IAsyncResult> beginMethod, Func<IAsyncResult, TResult> endMethod, TArg0 arg0, TArg1 arg1, TArg2 arg2)
         {
             var tcs = new TaskCompletionSource<TResult>();
             var asyncResult = beginMethod(arg0, arg1, arg2, Callback(endMethod, tcs), null);
@@ -291,22 +288,26 @@ namespace Zapto.AspNetCore.Utils
         /// <param name="callback">The callback method passed into the Begin method of the APM pattern.</param>
         /// <param name="state">The state passed into the Begin method of the APM pattern.</param>
         /// <returns>The asynchronous operation, to be returned by the Begin method of the APM pattern.</returns>
-        public static IAsyncResult ToBegin(Task<TResult> task, AsyncCallback callback, object state)
+        public static IAsyncResult ToBegin(Task<TResult> task, AsyncCallback callback, object? state)
         {
             if (task.IsCompleted)
                 return new AsyncResultCompletedSynchronously<TResult>(task, state);
             var tcs = new TaskCompletionSource<TResult>(state);
-            task.ContinueWith((t) =>
+            task.ContinueWith(_ =>
             {
                 if (task.IsFaulted)
-                    tcs.TrySetException(task.Exception.InnerExceptions);
+                {
+                    if (task.Exception != null)
+                        tcs.TrySetException(task.Exception.InnerExceptions);
+                    else
+                        tcs.TrySetException(new Exception[] { new Exception("Unknown error") });
+                }
                 else if (task.IsCanceled)
                     tcs.TrySetCanceled();
                 else
                     tcs.TrySetResult(task.Result);
 
-                callback?.Invoke(tcs.Task);
-                //}, TaskScheduler.Default);
+                callback(tcs.Task);
             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Current);
             return tcs.Task;
         }

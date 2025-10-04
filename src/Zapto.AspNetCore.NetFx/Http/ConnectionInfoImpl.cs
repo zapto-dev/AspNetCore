@@ -11,7 +11,7 @@ internal class ConnectionInfoImpl : ConnectionInfo
 {
     private AspNetContext _context = null!;
     private IPAddress? _remoteIpAddress;
-    private X509Certificate2 _certificate;
+    private X509Certificate2? _certificate;
 
     public void SetContext(AspNetContext context)
     {
@@ -25,7 +25,7 @@ internal class ConnectionInfoImpl : ConnectionInfo
         _certificate = null!;
     }
 
-    public override Task<X509Certificate2> GetClientCertificateAsync(CancellationToken cancellationToken = new()) => Task.FromResult(ClientCertificate);
+    public override Task<X509Certificate2?> GetClientCertificateAsync(CancellationToken cancellationToken = new()) => Task.FromResult(ClientCertificate);
 
     public override string Id
     {
@@ -90,7 +90,7 @@ internal class ConnectionInfoImpl : ConnectionInfo
         set => throw new NotSupportedException();
     }
 
-    public override X509Certificate2 ClientCertificate
+    public override X509Certificate2? ClientCertificate
     {
         get => _certificate ??= _context.Request.ClientCertificate.Certificate.Length > 0
             ? new X509Certificate2(_context.Request.ClientCertificate.Certificate)

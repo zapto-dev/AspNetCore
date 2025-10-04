@@ -46,7 +46,7 @@ internal sealed class ApplicationBuilder : IApplicationBuilder
  
     private ApplicationBuilder(ApplicationBuilder builder)
     {
-        Properties = new CopyOnWriteDictionary<string, object>(builder.Properties, StringComparer.Ordinal);
+        Properties = new CopyOnWriteDictionary<string, object?>(builder.Properties, StringComparer.Ordinal);
     }
  
     /// <summary>

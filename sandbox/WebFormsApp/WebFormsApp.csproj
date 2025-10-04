@@ -12,6 +12,7 @@
         <RootNamespace>WebFormsApp</RootNamespace>
         <AssemblyName>WebFormsApp</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <RuntimeIdentifiers>win</RuntimeIdentifiers>
         <MvcBuildViews>false</MvcBuildViews>
         <UseIISExpress>true</UseIISExpress>
         <Use64BitIISExpress/>
@@ -107,19 +108,8 @@
         </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Antlr" Version="3.5.0.2"/>
-        <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.7"/>
-        <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.7"/>
-        <PackageReference Include="Microsoft.AspNet.Web.Optimization" Version="1.1.3"/>
-        <PackageReference Include="Microsoft.AspNet.WebPages" Version="3.2.7"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
         <PackageReference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="2.0.0"/>
-        <PackageReference Include="Microsoft.jQuery.Unobtrusive.Validation" Version="3.2.11"/>
-        <PackageReference Include="Microsoft.Web.Infrastructure" Version="1.0.0"/>
-        <PackageReference Include="Modernizr" Version="2.8.3"/>
-        <PackageReference Include="Newtonsoft.Json" Version="11.0.1"/>
-        <PackageReference Include="WebGrease" Version="1.6.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.3.0"/>
     </ItemGroup>
     <PropertyGroup>

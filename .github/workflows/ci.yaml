@@ -1,0 +1,46 @@
+name: .NET
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: | 
+            8.0.x
+            9.0.x
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Locate MSBuild with vswhere
+        id: msbuild
+        shell: pwsh
+        run: |
+          $msbuildPath = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -latest -requires Microsoft.Component.MSBuild `
+            -find MSBuild\**\Bin\MSBuild.exe
+
+          if (-not $msbuildPath) {
+            Write-Error "MSBuild not found!"
+            exit 1
+          }
+
+          echo "MSBUILD=$msbuildPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Found MSBuild at $msbuildPath"
+      - name: Build
+        run: |
+          & $env:MSBUILD AspNetCore.sln /p:Configuration=Debug /p:Platform="Any CPU"
+      - name: Test Zapto.AspNetCore.NetFx
+        run: dotnet test --no-restore --no-build --verbosity normal tests/Zapto.AspNetCore.NetFx.Tests/Zapto.AspNetCore.NetFx.Tests.csproj
+      - name: Publish
+        uses: GerardSmit/publish-nuget@v4.0.2
+        if: github.ref == 'refs/heads/main'
+        with:
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
+          VERSION_FILE_PATH: src/Directory.Build.props
+          PROJECT_FILE_PATH: |
+            src/Zapto.AspNetCore.NetFx/Zapto.AspNetCore.NetFx.csproj

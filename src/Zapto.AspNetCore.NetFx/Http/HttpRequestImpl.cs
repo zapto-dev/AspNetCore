@@ -11,8 +11,8 @@ namespace Zapto.AspNetCore.Http;
 
 internal class HttpRequestImpl : HttpRequest
 {
-    private AspNetContext _aspContext;
-    private AspNetRequest _aspRequest;
+    private AspNetContext _aspContext = null!;
+    private AspNetRequest _aspRequest = null!;
     private readonly AspNetCoreFormFileCollection _formFiles = new();
     private readonly NameValueFormCollection _form = new();
     private readonly NameValueDictionary _query = new();
@@ -25,10 +25,10 @@ internal class HttpRequestImpl : HttpRequest
     private IFormCollection _formValue;
     private QueryString _queryStringValue = QueryString.Empty;
     private long? _contentLengthValue;
-    private string _httpMethodValue;
-    private string _schemeValue;
+    private string _httpMethodValue = null!;
+    private string _schemeValue = null!;
     private HostString _hostValue;
-    private Stream _bodyValue;
+    private Stream _bodyValue = null!;
 
     public HttpRequestImpl(HttpContextImpl httpContext)
     {

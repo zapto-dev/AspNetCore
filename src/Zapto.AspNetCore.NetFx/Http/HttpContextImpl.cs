@@ -21,13 +21,13 @@ internal class HttpContextImpl : HttpContext
     private readonly ConnectionInfoImpl _connection = new();
     private readonly WebSocketManagerImpl _webSocketManager;
     private readonly SessionImpl _session = new();
-    private IServiceProvider _requestServices;
-    private IDictionary<object, object> _itemsValue;
+    private IServiceProvider _requestServices = null!;
+    private IDictionary<object, object?> _itemsValue;
     private ISession _sessionValue;
-    private TaskCompletionSource<bool> _stackCompleteTcs;
-    private TaskCompletionSource<bool> _aspCompleteTcs;
+    private TaskCompletionSource<bool> _stackCompleteTcs = null!;
+    private TaskCompletionSource<bool> _aspCompleteTcs = null!;
     private AsyncServiceScope _serviceScope;
-    private Task _middlewareTask;
+    private Task _middlewareTask = null!;
 
     public HttpContextImpl()
     {
@@ -66,9 +66,9 @@ internal class HttpContextImpl : HttpContext
         _aspContext = null!;
         _webSocketManager.Reset();
         _session.Reset();
-        _requestServices = null;
+        _requestServices = null!;
         RequestAborted = CancellationToken.None;
-        TraceIdentifier = null;
+        TraceIdentifier = null!;
         _sessionValue = _session;
         _stackCompleteTcs = null!;
         _aspCompleteTcs = null!;
@@ -89,11 +89,11 @@ internal class HttpContextImpl : HttpContext
 
     public override ClaimsPrincipal User
     {
-        get => _aspContext.User as ClaimsPrincipal;
+        get => (ClaimsPrincipal)_aspContext.User;
         set => _aspContext.User = value;
     }
 
-    public override IDictionary<object, object> Items
+    public override IDictionary<object, object?> Items
     {
         get => _itemsValue;
         set => _itemsValue = value;
@@ -107,7 +107,7 @@ internal class HttpContextImpl : HttpContext
 
     public override CancellationToken RequestAborted { get; set; }
 
-    public override string TraceIdentifier { get; set; }
+    public override string TraceIdentifier { get; set; } = null!;
 
     public override ISession Session
     {
