@@ -43,7 +43,8 @@ public class AspNetFixture : IAsyncLifetime
         }
 
         // Start IIS Express
-        _iisProcess = Process.Start(iisExpressPath, $"/path:\"{sitePath}\" /port:{port}");
+        Environment.SetEnvironmentVariable("WEBSITE_PATH", sitePath);
+        _iisProcess = Process.Start(iisExpressPath, $"/config:{sitePath}/applicationhost.config /site:Site /apppool:Clr4IntegratedAppPool");
 
         BaseAddress = $"http://localhost:{port}/";
         Client = new HttpClient { BaseAddress = new Uri(BaseAddress) };
@@ -59,6 +60,11 @@ public class AspNetFixture : IAsyncLifetime
             catch
             {
                 await Task.Delay(500);
+            }
+
+            if (_iisProcess!.HasExited)
+            {
+                throw new Exception("IIS Express process exited unexpectedly.");
             }
         }
     }

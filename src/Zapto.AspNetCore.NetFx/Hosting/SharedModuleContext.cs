@@ -101,6 +101,8 @@ internal class SharedModuleContext : IRegisteredObject
             configure(builder);
             Delegate = builder.Build();
 
+            module.BeforeStart(host.Services);
+
             StartHostedServicesInBackground(host);
         }
     }

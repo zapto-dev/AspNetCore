@@ -43,4 +43,6 @@ jobs:
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           VERSION_FILE_PATH: src/Directory.Build.props
           PROJECT_FILE_PATH: |
+            src/Zapto.AspNetCore.Polyfill/Zapto.AspNetCore.Polyfill.csproj
             src/Zapto.AspNetCore.NetFx/Zapto.AspNetCore.NetFx.csproj
+

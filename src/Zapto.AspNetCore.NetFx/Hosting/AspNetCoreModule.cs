@@ -5,6 +5,7 @@ using System.Web;
 using Zapto.AspNetCore.Http;
 using Zapto.AspNetCore.Utils;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
@@ -45,6 +46,10 @@ public abstract class AspNetCoreModule : IHttpModule, IHttpAsyncHandler
 
             method.Invoke(this, args);
         }
+    }
+
+    public virtual void BeforeStart(IServiceProvider services)
+    {
     }
 
     /// <summary>

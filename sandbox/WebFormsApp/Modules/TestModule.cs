@@ -6,6 +6,7 @@ using Zapto.AspNetCore;
 using Zapto.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,14 @@ namespace WebFormsApp.Modules
 
             app.Use(async (context, next) =>
             {
+                if (context.Request.Path.StartsWithSegments("/file"))
+                {
+                    var httpBodyFeature = context.Features.Get<IHttpResponseBodyFeature>() ?? throw new InvalidOperationException("IHttpResponseBodyFeature not found");
+
+                    await httpBodyFeature.SendFileAsync("test.txt", 0, null);
+                    return;
+                }
+
                 if (context.Request.Path.StartsWithSegments("/ws/echo") && context.WebSockets.IsWebSocketRequest)
                 {
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();

@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "IIS Express": {
+      "commandName": "Executable",
+      "executablePath": "C:/Program Files (x86)/IIS Express/iisexpress.exe",
+      "commandLineArgs": "/config:$(ProjectDir)/applicationhost.config /site:Site /apppool:Clr4IntegratedAppPool",
+      "workingDirectory": "C:/Program Files (x86)/IIS Express",
+      "environmentVariables": {
+        "WEBSITE_PATH": "$(ProjectDir)"
+      }
+    }
+  }
+}

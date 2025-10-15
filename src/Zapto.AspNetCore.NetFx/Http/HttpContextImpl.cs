@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
+using Zapto.AspNetCore.Http.Features;
 
 namespace Zapto.AspNetCore.Http;
 
 internal class HttpContextImpl : HttpContext
 {
-    private FeatureCollection? _features;
+    private FeatureCollectionImpl _features;
     private AspNetContext _aspContext = null!;
     private readonly HttpRequestImpl _request;
     private readonly HttpResponseImpl _response;
@@ -34,6 +35,7 @@ internal class HttpContextImpl : HttpContext
         _request = new HttpRequestImpl(this);
         _response = new HttpResponseImpl(this);
         _webSocketManager = new WebSocketManagerImpl();
+        _features = new FeatureCollectionImpl();
         _itemsValue = _items;
         _sessionValue = _session;
     }
@@ -51,13 +53,15 @@ internal class HttpContextImpl : HttpContext
         _session.SetSession(httpContext);
         _webSocketManager.SetContext(httpContext);
         _connection.SetContext(httpContext);
+        _features.SetHttpResponse(httpContext.Response);
         _stackCompleteTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         _aspCompleteTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        RequestAborted = httpContext.Request.TimedOutToken;
     }
 
     public void Reset()
     {
-        _features = null;
+        _features.Reset();
         _itemsValue = _items;
         _connection.Reset();
         _request.Reset();
@@ -80,7 +84,7 @@ internal class HttpContextImpl : HttpContext
         _aspContext.Request.Abort();
     }
 
-    public override IFeatureCollection Features => _features ??= new FeatureCollection();
+    public override IFeatureCollection Features => _features;
     public override HttpRequest Request => _request;
     public override HttpResponse Response => _response;
     public override ConnectionInfo Connection => _connection;
